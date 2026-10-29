@@ -19,6 +19,7 @@ WORKDIR /src
 COPY . .
 RUN npm ci || npm install
 # Default grunt task builds the distributable into build/EspoCRM-<version>
+RUN composer install --no-dev --no-interaction || (composer check-platform-reqs; false)
 RUN grunt
 
 # ---------- Stage 2: runtime ----------
