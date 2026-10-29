@@ -15,11 +15,11 @@ RUN apt-get update \
  && npm install -g grunt-cli \
  && rm -rf /var/lib/apt/lists/*
 
+RUN install-php-extensions sockets
 WORKDIR /src
 COPY . .
 RUN npm ci || npm install
 # Default grunt task builds the distributable into build/EspoCRM-<version>
-RUN composer install --no-dev --no-interaction || (composer check-platform-reqs; false)
 RUN grunt
 
 # ---------- Stage 2: runtime ----------
@@ -42,6 +42,7 @@ RUN install-php-extensions pdo_mysql gd zip intl exif pcntl posix bcmath opcache
       > /etc/apache2/conf-available/espocrm.conf \
  && a2enconf espocrm
 
+RUN install-php-extensions sockets
 COPY --from=builder --chown=www-data:www-data /src/build/EspoCRM-*/ /var/www/html/
 
 EXPOSE 80
