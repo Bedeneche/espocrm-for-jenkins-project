@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_USER = 'bedeneche'          // <-- change
+        DOCKERHUB_USER = 'bedeneche'
         IMAGE_NAME     = "${DOCKERHUB_USER}/espocrm"
         IMAGE_TAG      = "${env.BUILD_NUMBER}"
         ANSIBLE_CONFIG = "${env.WORKSPACE}/ansible/ansible.cfg"
@@ -52,7 +52,7 @@ pipeline {
             }
         }
 
-             stage('Deploy with Ansible') {
+        stage('Deploy with Ansible') {
             steps {
                 withCredentials([string(credentialsId: 'espo-db-password', variable: 'DB_PASS'),
                                  string(credentialsId: 'espo-db-root-password', variable: 'DB_ROOT_PASS')]) {
@@ -68,11 +68,12 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         always {
             sh 'docker logout || true'
-            sh 'docker image prune -f || true'   // keep the 15 GB disk from filling up
+            sh 'docker image prune -f || true'
         }
         success { echo "Deployed ${IMAGE_NAME}:${IMAGE_TAG}" }
         failure { echo 'Pipeline failed - check the stage logs above.' }
