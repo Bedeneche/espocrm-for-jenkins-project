@@ -1,0 +1,28 @@
+# Local test: docker compose up -d --build   ->   http://localhost:8080
+# In the installer wizard use: DB host = db, name/user/password below.
+services:
+  espocrm:
+    build: .
+    image: espocrm-local
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    volumes:
+      - espo-data:/var/www/html/data
+      - espo-custom:/var/www/html/custom
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: espocrm
+      MYSQL_USER: espocrm
+      MYSQL_PASSWORD: espopass
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  espo-data:
+  espo-custom:
+  db-data:

@@ -1,0 +1,10 @@
+.git
+.terraform
+terraform
+ansible
+scripts
+node_modules
+vendor
+build
+*.pem
+Jenkinsfile

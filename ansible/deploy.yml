@@ -1,0 +1,91 @@
+---
+- name: Deploy EspoCRM (app + MySQL) with Docker
+  hosts: web
+  become: true
+
+  vars:
+    app_image: "bedeneche/espocrm"
+    app_tag: "latest"
+    app_container: espocrm
+    db_container: espocrm-db
+    docker_network: espo-net
+    host_port: 80
+    # CHANGE THESE (or use ansible-vault / -e on the command line)
+    db_name: espocrm
+    db_user: espocrm
+   db_password: "Bede_Espo_Db_8271"
+    db_root_password: "Bede_Root_Mysql_4096"
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Docker and Python Docker library
+      apt:
+        name:
+          - docker.io
+          - python3-docker
+        state: present
+
+    - name: Start and enable Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Create Docker network
+      community.docker.docker_network:
+        name: "{{ docker_network }}"
+
+    - name: Run MySQL container
+      community.docker.docker_container:
+        name: "{{ db_container }}"
+        image: mysql:8.0
+        state: started
+        restart_policy: always
+        networks:
+          - name: "{{ docker_network }}"
+        env:
+          MYSQL_ROOT_PASSWORD: "{{ db_root_password }}"
+          MYSQL_DATABASE: "{{ db_name }}"
+          MYSQL_USER: "{{ db_user }}"
+          MYSQL_PASSWORD: "{{ db_password }}"
+        volumes:
+          - espo-db-data:/var/lib/mysql
+
+    - name: Pull EspoCRM image
+      community.docker.docker_image:
+        name: "{{ app_image }}:{{ app_tag }}"
+        source: pull
+        force_source: yes
+
+    - name: Run EspoCRM container
+      community.docker.docker_container:
+        name: "{{ app_container }}"
+        image: "{{ app_image }}:{{ app_tag }}"
+        state: started
+        recreate: yes
+        restart_policy: always
+        networks:
+          - name: "{{ docker_network }}"
+        ports:
+          - "{{ host_port }}:80"
+        volumes:
+          - espo-data:/var/www/html/data
+          - espo-custom:/var/www/html/custom
+
+    - name: Check that EspoCRM responds
+      uri:
+        url: "http://localhost:{{ host_port }}"
+        status_code: [200, 301, 302]
+      register: result
+      retries: 12
+      delay: 10
+      until: result.status is defined
