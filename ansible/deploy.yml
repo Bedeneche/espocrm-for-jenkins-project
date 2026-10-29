@@ -89,3 +89,9 @@
       retries: 12
       delay: 10
       until: result.status is defined
+
+    - name: Run EspoCRM scheduled jobs every minute
+      cron:
+        name: "espocrm cron"
+        user: root
+        job: "docker exec -u www-data espocrm php -f /var/www/html/cron.php > /dev/null 2>&1"
