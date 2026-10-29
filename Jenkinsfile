@@ -52,18 +52,22 @@ pipeline {
             }
         }
 
-        stage('Deploy with Ansible') {
+             stage('Deploy with Ansible') {
             steps {
-                sh '''
-                    cd ansible
-                    ansible all -m ping
-                    ansible-playbook deploy.yml \
-                      -e app_image=${IMAGE_NAME} \
-                      -e app_tag=${IMAGE_TAG}
-                '''
+                withCredentials([string(credentialsId: 'espo-db-password', variable: 'DB_PASS'),
+                                 string(credentialsId: 'espo-db-root-password', variable: 'DB_ROOT_PASS')]) {
+                    sh '''
+                        cd ansible
+                        ansible all -m ping
+                        ansible-playbook deploy.yml \
+                          -e app_image=${IMAGE_NAME} \
+                          -e app_tag=${IMAGE_TAG} \
+                          -e db_password="$DB_PASS" \
+                          -e db_root_password="$DB_ROOT_PASS"
+                    '''
+                }
             }
         }
-    }
 
     post {
         always {
