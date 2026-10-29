@@ -13,8 +13,8 @@
     # CHANGE THESE (or use ansible-vault / -e on the command line)
     db_name: espocrm
     db_user: espocrm
-    db_password: "Bede_Espo_Db_8271"
-    db_root_password: "Bede_Root_Mysql_4096"
+    db_password: "eyaTJFta52ROhLwu"
+    db_root_password: "SDGBM7HzFVRNOTZc"
   tasks:
     - name: Update apt cache
       apt:
